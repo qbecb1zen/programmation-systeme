@@ -15,8 +15,9 @@ struct tList
 };
 
 /* Function definitions */
-struct tList * newList(void);
-void           freeList(struct tList *);
-struct tNode * addListNode(struct tList *, int *);
-void           applyFunctionToList(struct tList *, void (*fctPtr)(int *));
-void           deleteFromList(struct tList *, struct tNode *);
+struct tList *newList(void);
+void freeList(struct tList *);
+struct tNode *addListNode(struct tList *, int *);
+void applyFunctionToList(struct tList *, void (*fctPtr)(int *));
+void deleteFromList(struct tList *, struct tNode *);
+void bubble(struct tList *);
