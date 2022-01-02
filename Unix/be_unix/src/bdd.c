@@ -143,6 +143,7 @@ int add_data(Data *data)
   {
     return -1;
   }
+  printf("Commande effectuée\n");
   return 0;
 }
 
@@ -186,6 +187,7 @@ int delete_data(Data *data)
   {
     return -1;
   }
+  printf("Commande effectuée\n");
   return 0;
 }
 

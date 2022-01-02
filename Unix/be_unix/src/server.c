@@ -1,5 +1,7 @@
 #include <string.h>
 #include "utils.h"
+#include <sys/wait.h>
+#include <unistd.h>
 
 char *bdd_bin = "./bdd";
 
@@ -17,7 +19,6 @@ char **parse(char *line)
   res[2] = arg2;
   if (arg2 == NULL)
   {
-    arg1[strlen(arg1) - 1] = '\0';
     return res;
   }
 
@@ -60,6 +61,7 @@ int main(int argc, char **argv)
 {
   int socket_desc;
   int new_socket;
+  char line[LINE_SIZE];
 
   // Configuration de la socket serveur
   socket_desc = configure_socket();
@@ -68,6 +70,24 @@ int main(int argc, char **argv)
 
   // Gestion des commandes entrantes dans la nouvelle socket
   process_communication(new_socket);
+
+  while (1)
+  {
+    int is_command_ok;
+    fgets(line, LINE_SIZE, stdin);
+    line[strlen(line) - 1] = '\0';
+    if (strcmp(line, "stop") == 0)
+    {
+      return 0;
+    }
+    pid_t pid = fork();
+    if (pid == -1)
+      return -1;
+    if (pid == 0)
+    {
+      is_command_ok = execv("./output/bdd", parse(line));
+    }
+  }
 
   /*end hide*/
   return 0;
