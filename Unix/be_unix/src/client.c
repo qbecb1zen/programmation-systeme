@@ -50,7 +50,6 @@ int main(int argc, char **argv)
       send(socket_client, line, strlen(line), 0);
       valread = read(socket_client, buffer, 1024);
       printf("%s\n", buffer);
-      exit(1);
     }
   }
   return 0;
