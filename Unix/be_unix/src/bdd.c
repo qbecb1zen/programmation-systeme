@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <ctype.h>
 #include "bdd.h"
 #include "utils.h"
@@ -130,21 +129,21 @@ Data *get_data(char *line)
 
 //La fonction _add_data_  retourne 0 si l'opération s'est bien déroulé
 //sinon -1
-void add_data(Data *data)
+int add_data(Data *data)
 {
   fdata = fopen(DATA, "a");
   if (fdata == NULL)
   {
-    exit(1);
+    return -1;
   }
   char dataline[LINE_SIZE];
   data_format(dataline, data);
   fputs(dataline, fdata);
   if (fclose(fdata) == EOF)
   {
-    exit(1);
+    return -1;
   }
-  exit(0);
+  return 0;
 }
 
 //Enlève la donnée _data_ de la base de donnée
@@ -154,15 +153,15 @@ void add_data(Data *data)
 // Autrement, le code va supprimer tous les exemples de la database qui correspondent à la valeur donnée
 // Après ça reste un behavior attendu comme généralement on donne un ID à la bdd (ce qui n'est pas le cas ici)
 // et donc avec la data structure fournie, on ne peut assigner un chevalier à plus d'une activité sur une heure !
-void delete_data(Data *data)
+int delete_data(Data *data)
 {
   remove("data.old");
   if (rename("data", "data.old") != 0)
-    exit(1);
+    return -1;
   oldfdata = fopen(OLDDATA, "r");
   fdata = fopen(DATA, "a");
   if (fdata == NULL || oldfdata == NULL)
-    exit(1);
+    return -1;
   char line[LINE_SIZE];
   char trashline[LINE_SIZE];
   data_format(trashline, data);
@@ -181,13 +180,13 @@ void delete_data(Data *data)
   remove("data.old");
   if (fclose(fdata) == EOF)
   {
-    exit(1);
+    return -1;
   }
   if (fclose(oldfdata) == EOF)
   {
-    exit(1);
+    return -1;
   }
-  exit(0);
+  return 0;
 }
 
 void read_one_line(char *l, Data *data)
@@ -196,11 +195,11 @@ void read_one_line(char *l, Data *data)
 }
 
 //Affiche le planning
-void see_all(char *answer)
+int see_all(char *answer)
 {
   fdata = fopen(DATA, "r");
   if (fdata == NULL)
-    close(1);
+    return 1;
   char line[LINE_SIZE];
   while (fgets(line, LINE_SIZE, fdata))
   {
@@ -210,16 +209,37 @@ void see_all(char *answer)
     strcat(answer, one_line);
   }
   if (fclose(fdata) == EOF)
-    close(1);
-  close(0);
+    return 1;
+  return 0;
 }
 
 int main(int argc, char **argv)
 {
-  // add_data(get_data("toto,arc,mardi,4"));
   // delete_data(get_data("toto,arc,mardi,4"));
-  char answer[3 * LINE_SIZE];
-  see_all(answer);
-  printf("%s", answer);
-  return 0;
+  if (strcmp(argv[1], "ADD") == 0)
+  {
+    char dataline[LINE_SIZE];
+    sprintf(dataline, "%s,%s,%s,%s", argv[2], argv[3], argv[4], argv[5]);
+    add_data(get_data(dataline));
+    return 0;
+  }
+  else if (strcmp(argv[1], "DEL") == 0)
+  {
+    char dataline[LINE_SIZE];
+    sprintf(dataline, "%s,%s,%s,%s", argv[2], argv[3], argv[4], argv[5]);
+    delete_data(get_data(dataline));
+    return 0;
+  }
+  else if (strcmp(argv[1], "SEE") == 0)
+  {
+    char answer[5 * LINE_SIZE];
+    see_all(answer);
+    printf("%s", answer);
+    return 0;
+  }
+  else
+  {
+    printf("Command not found : %s\n", argv[1]);
+    return 1;
+  }
 }
