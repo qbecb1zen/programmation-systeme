@@ -241,6 +241,7 @@ int main(int argc, char **argv)
   }
   else
   {
+    printf("%s\n", argv[1]);
     printf("Command not found : %s\n", argv[1]);
     return 1;
   }
