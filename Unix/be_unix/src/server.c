@@ -55,11 +55,7 @@ int configure_socket()
 
   struct sockaddr_in address;
 
-  if (setsockopt(socket_desc, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) == -1)
-  {
-    perror("set option failed");
-    exit(EXIT_FAILURE);
-  }
+  setsockopt(socket_desc, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
   address.sin_family = AF_INET;
   address.sin_addr.s_addr = INADDR_ANY;
   address.sin_port = htons(SERVER_PORT);
@@ -82,8 +78,34 @@ int configure_socket()
 
 // Passage des commandes à la base de données par un pipe
 // Renvoi des réponses au client par la socket réseau
-void process_communication(int socket_desc)
+int process_communication(int socket_desc)
 {
+  int new_socket, valread;
+  char buffer[1024] = {0};
+  struct sockaddr_in address;
+  char *hello = "Hello from server";
+  int addrlen = sizeof(address);
+  int is_command_ok;
+  if ((new_socket = accept(socket_desc, (struct sockaddr *)&address,
+                           (socklen_t *)&addrlen)) < 0)
+  {
+    perror("accept");
+    exit(EXIT_FAILURE);
+  }
+  valread = read(new_socket, buffer, 1024);
+
+  pid_t pid = fork();
+  if (pid == -1)
+  {
+    return -1;
+  }
+  if (pid == 0)
+  {
+    is_command_ok = execv(bdd_bin, parse(buffer));
+    send(new_socket, hello, strlen(hello), 0);
+    return 0;
+  }
+  return 0;
 }
 
 int main(int argc, char **argv)
@@ -91,43 +113,13 @@ int main(int argc, char **argv)
   int socket_desc, new_socket, valread;
   char line[LINE_SIZE];
   FILE *socket_file;
-  char *hello = "Hello from server";
   char buffer[1024] = {0};
-  struct sockaddr_in address;
-  int addrlen = sizeof(address);
   // Configuration de la socket serveur
   socket_desc = configure_socket();
 
-  // Réception des connections réseaux entrantes
-
-  // Gestion des commandes entrantes dans la nouvelle socket
-  process_communication(new_socket);
-
   while (1)
   {
-    int is_command_ok;
-    if ((new_socket = accept(socket_desc, (struct sockaddr *)&address,
-                             (socklen_t *)&addrlen)) < 0)
-    {
-      perror("accept");
-      exit(EXIT_FAILURE);
-    }
-    valread = read(new_socket, buffer, 1024);
-    printf("%s\n", buffer);
-
-    // send(new_socket, hello, strlen(hello), 0);
-
-    if (strcmp(line, "stop") == 0)
-    {
-      return 0;
-    }
-    pid_t pid = fork();
-    if (pid == -1)
-      return -1;
-    if (pid == 0)
-    {
-      is_command_ok = execv(bdd_bin, parse(buffer));
-    }
+    process_communication(socket_desc);
   }
 
   /*end hide*/

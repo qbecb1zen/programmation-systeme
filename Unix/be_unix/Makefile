@@ -1,18 +1,23 @@
-build-stack:
+build-bdd:
 	gcc ./src/bdd.c -o ./output/bdd
+
+build-server:
 	gcc ./src/server.c -o ./output/server
+
+build-client:
 	gcc ./src/client.c -o ./output/client
 
-bdd:
-	gcc ./src/bdd.c -o ./output/bdd
+build-stack:
+	make build-bdd
+	make build-server
+	make build-client
 
-server:
-	gcc ./src/server.c -o ./output/server
+run-server:
 	./output/server
 
-client:
-	gcc ./src/client.c -o ./output/client
+run-client:
 	./output/client
+
 
 clean:
 	rm output/*
