@@ -190,22 +190,36 @@ void delete_data(Data *data)
   exit(0);
 }
 
-//Affiche le planning
-char *see_all(char *answer)
+void read_one_line(char *l, Data *data)
 {
-  return "";
+  sprintf(l, "%s à %dh: %s a %s\n", day_to_string(data->day), data->hour, data->name, data->activity);
+}
+
+//Affiche le planning
+void see_all(char *answer)
+{
+  fdata = fopen(DATA, "r");
+  if (fdata == NULL)
+    close(1);
+  char line[LINE_SIZE];
+  while (fgets(line, LINE_SIZE, fdata))
+  {
+    Data *data = get_data(line);
+    char one_line[LINE_SIZE];
+    read_one_line(one_line, data);
+    strcat(answer, one_line);
+  }
+  if (fclose(fdata) == EOF)
+    close(1);
+  close(0);
 }
 
 int main(int argc, char **argv)
 {
   // add_data(get_data("toto,arc,mardi,4"));
-  // add_data(get_data("toto,arc,mardi,5"));
-  delete_data(get_data("toto,arc,mardi,4"));
-  // add_data(get_data("toto,arc,mardi,1"));
-  // add_data(get_data("toto,arc,mardi,2"));
-  // add_data(get_data("toto,arc,mardi,4"));
   // delete_data(get_data("toto,arc,mardi,4"));
-  // add_data(get_data("toto,arc,mardi,5"));
-  // add_data(get_data("toto,arc,mardi,4"));
+  char answer[3 * LINE_SIZE];
+  see_all(answer);
+  printf("%s", answer);
   return 0;
 }
